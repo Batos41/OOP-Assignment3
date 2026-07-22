@@ -4,6 +4,7 @@ import api.DefaultProgramRegistry
 import api.DefaultRobotApi
 import api.StudentPrograms
 import command.CommandInvoker
+import command.SetVelocitiesCommand
 import javafx.animation.AnimationTimer
 import javafx.application.Application
 import javafx.scene.Scene
@@ -96,9 +97,7 @@ class RobotSimulationApp : Application() {
     }
 
     private fun drive(left: Double, right: Double) {
-        // TODO(student): keyboard control — build one of your commands and run it via the API:
-        //     api.perform(MySetVelocityCommand(api.actuator, left, right))
-        // (Same idea as the on-screen buttons in ControlPanel.)
+        api.perform(SetVelocitiesCommand(api.actuator, left, right))
     }
 
     private fun switchEnvironment(envClass: Class<*>) {

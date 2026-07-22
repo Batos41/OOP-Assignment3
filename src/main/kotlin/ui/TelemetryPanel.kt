@@ -4,6 +4,7 @@ import javafx.geometry.Insets
 import javafx.scene.control.Label
 import javafx.scene.layout.VBox
 import model.Robot
+import sensor.VisionSensor
 
 /**
  * A live readout of the sensor values — the *consumer* side of the Observer pattern.
@@ -38,16 +39,43 @@ class TelemetryPanel : VBox(6.0) {
      * Subscribe observers to the given robot's sensors so the labels update live. Called whenever
      * the robot is (re)created — on startup, environment change, and reset.
      *
-     * TODO(student): subscribe an observer to each sensor and update the matching label, e.g.:
-     * You can change the text of one of the Labels above by modifying the `text` property,
-     * e.g: `vision.text = "The new text to display"`
-     *
      * The labels (`sonar`, `temperature`, `vision`, `line`, `collision`) are ready to write to.
      * Until you do this, they stay "—". (This depends on your Observer pattern working — see
      * AbstractSubject.)
      */
     fun bindTo(robot: Robot) {
-        // TODO(student): subscribe observers to robot's sensors (see the doc comment above).
+        robot.sonar.subscribe { value ->
+            sonar.text = String.format("%.0f px", value)
+        }
+
+        robot.temperature.subscribe { value ->
+            temperature.text = String.format("%.1f °C", value)
+        }
+
+        robot.vision.subscribe { color ->
+            vision.text = when (color) {
+                javafx.scene.paint.Color.RED -> "RED"
+                VisionSensor.OBSTACLE_COLOR -> "Obstacle"
+                VisionSensor.WALL_COLOR -> "Wall"
+                else -> "Floor"
+            }
+        }
+
+        // Helper function to update the combined line readout
+        fun updateLineReadout() {
+            val l = if (robot.lineLeft.reading == true) "1" else "0"
+            val c = if (robot.lineCenter.reading == true) "1" else "0"
+            val r = if (robot.lineRight.reading == true) "1" else "0"
+            line.text = "$l / $c / $r"
+        }
+
+        robot.lineLeft.subscribe { updateLineReadout() }
+        robot.lineCenter.subscribe { updateLineReadout() }
+        robot.lineRight.subscribe { updateLineReadout() }
+
+        robot.collision.subscribe { isColliding ->
+            collision.text = if (isColliding) "COLLISION" else "Clear"
+        }
     }
 
     private fun captioned(caption: String, value: Label): VBox =
